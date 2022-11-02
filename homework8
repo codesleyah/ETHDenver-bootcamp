@@ -1,0 +1,35 @@
+const {expect} = require("chai")
+const {ethers} = require("hardhat")
+
+describe("VolcanoCoin", function () {
+
+    let contract
+    let owner
+
+    this.beforeEach (async function () {
+        const VolcanoCoin = await ethers.getContractFactory("VolcanoCoin")
+        const volcanoCoin = await VolcanoCoin.deploy() 
+        contract = await volcanoCoin.deployed();
+
+        [owner, otherAccounts] = await ethers.getSigners()
+    })
+
+    it("The total supply should be initally 10000", async function(){        
+        const totalSupply = await contract.totalSupply()
+        expect(totalSupply).to.equal(10000)
+
+    })
+
+    it("The total supply can be increased by 1000 steps", async function(){
+        const totalSupply = await contract.totalSupply()
+        await contract.increaseSupply()
+        const newTotalSupply = await contract.totalSupply()
+        expect(newTotalSupply).to.equal(11000)
+
+    })
+
+    it("Make sure only the owner  of the contract increses the supply", async function (){
+        const totalSupply = await contract.totalSupply()
+        await expect(contract.connect(otherAccounts).increaseSupply()).to.be.revertedWith("Ownable: caller is not the owner")
+    })
+});
